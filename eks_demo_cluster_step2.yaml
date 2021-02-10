@@ -1,0 +1,49 @@
+Parameters:
+  VpcName:
+    Description: Existing workshop CloudFormation's StackName 
+    Type: String
+    Default: EKS-Demo-vpc
+Resources:
+  ServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - !FindInMap 
+                  - ServicePrincipalPartitionMap
+                  - !Ref 'AWS::Partition'
+                  - EKS
+                - !FindInMap 
+                  - ServicePrincipalPartitionMap
+                  - !Ref 'AWS::Partition'
+                  - EKSFargatePods
+        Version: 2012-10-17
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSClusterPolicy'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSVPCResourceController'
+      RoleName: "eksServiceRole"
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}/ServiceRole'
+  myCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: EKS-Demo-Cluster
+      Version: '1.18'
+      RoleArn: !GetAtt 
+        - ServiceRole
+        - Arn
+      ResourcesVpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub '${VpcName}-SecurityGroups'
+        SubnetIds: !Split 
+          - ','
+          - Fn::ImportValue: !Sub '${VpcName}-SubnetIds'
+Outputs:
+  ClusterStackName:
+    Value:  !Ref 'AWS::StackName'
