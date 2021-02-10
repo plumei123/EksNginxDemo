@@ -1,21 +1,21 @@
 #!/bin/bash
-# authors: susanto.b.n@gmail.com
-# Run All CloudFormation Create Stack for IAM, VPC, Bastion and EKS Cluster Templates
+# authors: plumei.zhang@gmail.com
+# Run All CloudFormation Create Stack for VPC, Bastion and EKS Cluster Templates
 
 
 ##################################### Functions Definitions
 function usage() {
     echo "usage: $0 [options]"
-    echo "Run All CloudFormation Create Stack for IAM, VPC, Bastion and EKS Cluster Templates"
+    echo "Run All CloudFormation Create Stack for VPC, Bastion and EKS Cluster Templates"
     echo "by default are using AWS CLI default profile & region, otherwise please provide profile and/or region option"
     echo " "
     echo -e "options:"
     echo -e "-h, --help \t Show options for this script"
     echo -e "-p, --profile \t AWS CLI profile"
     echo -e "-r, --region \t AWS Region"
-    echo -e "--vpc-stack \t VPC CloudFormation's Stack Name ('Vpc-Stack' by default)"
-    echo -e "--bastion-stack \t Bastion CloudFormation's Stack Name ('Vpc-Bastion-Stack' by default)"
-    echo -e "--eks-stack \t EKS CloudFormation's Stack Name ('Vpc-Eks1-Stack' by default)"
+    echo -e "--vpc-stack \t VPC CloudFormation's Stack Name ('EKS-Demo-Stack' by default)"
+    echo -e "--nodegroup-stack \t Bastion CloudFormation's Stack Name ('EKS-Demo-Stack' by default)"
+    echo -e "--eks-stack \t EKS CloudFormation's Stack Name ('EKS-Demo-Stack' by default)"
 }
 
 function aws_get_identity() {
@@ -65,7 +65,7 @@ function aws_create_stack_Nodegroup() {
   aws_create_stack $NODEGRP_STACK "file://./eks_demo_nodegroup_step3.yaml" "--parameters ParameterKey=VpcName,ParameterValue=$VPC_STACK ParameterKey=ClusterName,ParameterValue=$EKS_STACK ParameterKey=NodeGroupDesiredCapacity,ParameterValue=2 --capabilities CAPABILITY_IAM"
 }
 
-function aws_create_stack_EKSCluster() {
+function aws_create_stack_EKS() {
   aws_create_stack $EKS_STACK "file://./eks_demo_cluster_step2.yaml" "--parameters ParameterKey=VpcName,ParameterValue=$VPC_STACK --capabilities CAPABILITY_IAM"
 }
 
@@ -90,20 +90,16 @@ while true; do
 			REGION_PARAM="--region $REGION"
             shift 2
             ;;
-        --iam-stack)
-            IAM_STACK="$2";
-            shift 2
-            ;;
         --vpc-stack)
             VPC_STACK="$2";
             shift 2
             ;;
-        --bastion-stack)
-            BASTION_STACK="$2";
-            shift 2
-            ;;
         --eks-stack)
             EKS_STACK="$2";
+            shift 2
+            ;;
+        --nodegroup-stack)
+            NODEGRP_STACK="$2";
             shift 2
             ;;
         --)
@@ -119,7 +115,7 @@ if [[ $NARGS == 0 ]] ; then echo " "; fi
 
 if [[ -z "$VPC_STACK" ]] ; then VPC_STACK="EKS-Demo-vpc"; fi
 if [[ -z "$EKS_STACK" ]] ; then EKS_STACK="EKS-Demo-Cluster"; fi
-if [[ -z "$NODEGRP_STACK" ]] ; then BASTION_STACK="EKS-Demo-Nodegroup"; fi
+if [[ -z "$NODEGRP_STACK" ]] ; then NODEGRP_STACK="EKS-Demo-Nodegroup"; fi
 
 aws_get_identity
 
