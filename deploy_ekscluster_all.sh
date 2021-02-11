@@ -1,6 +1,6 @@
 #!/bin/bash
 # authors: plumei.zhang@gmail.com
-# Run All CloudFormation Create Stack for VPC, Bastion and EKS Cluster Templates
+# Run All CloudFormation Create Stack for VPC, Bastion EKS Cluster and NodeGroup Templates
 
 
 ##################################### Functions Definitions
