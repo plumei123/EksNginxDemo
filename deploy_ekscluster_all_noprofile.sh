@@ -118,8 +118,8 @@ if [[ -z "$VPC_STACK" ]] ; then VPC_STACK="EKS-Demo-vpc"; fi
 if [[ -z "$EKS_STACK" ]] ; then EKS_STACK="EKS-Demo-Cluster"; fi
 if [[ -z "$NODEGRP_STACK" ]] ; then NODEGRP_STACK="EKS-Demo-Nodegroup"; fi
 
-aws_get_identity
-echo "after aws_get_identity, errorcode is $?"
+#aws_get_identity
+#echo "after aws_get_identity, errorcode is $?"
 
 echo "VPC Stack Name : $VPC_STACK"
 echo "EKS Stack Name : $EKS_STACK"
