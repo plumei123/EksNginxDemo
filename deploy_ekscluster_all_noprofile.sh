@@ -68,11 +68,11 @@ function aws_create_stack_VPC() {
 }
 
 function aws_create_stack_Nodegroup() {
-  aws_create_stack $NODEGRP_STACK "file://./eks_demo_nodegroup_step3.yaml" "--parameters ParameterKey=VpcName,ParameterValue=$VPC_STACK ParameterKey=ClusterName,ParameterValue=$EKS_STACK ParameterKey=NodeGroupDesiredCapacity,ParameterValue=2 --capabilities CAPABILITY_IAM"
+  aws_create_stack $NODEGRP_STACK "file://./eks_demo_nodegroup_step3.yaml" "--parameters ParameterKey=VpcName,ParameterValue=$VPC_STACK ParameterKey=ClusterName,ParameterValue=$EKS_STACK ParameterKey=NodeGroupDesiredCapacity,ParameterValue=2 --capabilities CAPABILITY_NAMED_IAM"
 }
 
 function aws_create_stack_EKS() {
-  aws_create_stack $EKS_STACK "file://./eks_demo_cluster_step2.yaml" "--parameters ParameterKey=VpcName,ParameterValue=$VPC_STACK --capabilities CAPABILITY_IAM"
+  aws_create_stack $EKS_STACK "file://./eks_demo_cluster_step2.yaml" "--parameters ParameterKey=VpcName,ParameterValue=$VPC_STACK --capabilities CAPABILITY_NAMED_IAM"
 }
 
 ##################################### End Function Definitions
