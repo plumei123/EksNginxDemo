@@ -264,8 +264,6 @@ Resources:
               DeleteOnTermination: true
               VolumeSize: !Ref NodeVolumeSize
               VolumeType: gp2
-        IamInstanceProfile:
-          Arn: !GetAtt NodeInstanceProfile.Arn
         ImageId: !If
           - HasNodeImageId
           - !Ref NodeImageId
@@ -296,7 +294,7 @@ Resources:
     Properties:
       ClusterName: !Sub '${ClusterName}'     
       LaunchTemplate:
-        LaunchTemplateId: !Ref NodeLaunchTemplate
+        Id: !Ref NodeLaunchTemplate
         Version: !GetAtt NodeLaunchTemplate.LatestVersionNumber
       NodeRole: !GetAtt 
         - NodeInstanceRole
@@ -306,13 +304,6 @@ Resources:
         MaxSize: !Ref NodeGroupMaxSize
         MinSize: !Ref NodeGroupMinSize
       NodegroupName: Nodegroup
-      Tags:
-        - Key: Name
-          PropagateAtLaunch: true
-          Value: !Sub ${ClusterName}-${NodeGroupName}-Node
-        - Key: !Sub kubernetes.io/cluster/${ClusterName}
-          PropagateAtLaunch: true
-          Value: owned
       Subnets: !Split 
           - ','
           - Fn::ImportValue: !Sub '${VpcName}-SubnetIds'
