@@ -41,20 +41,12 @@ pipeline {
 			    '''
             }
         }
-        stage('Build Eks Cluster') {
-            steps {		
-                sh '''
-                chmod +x ./deploy_ekscluster_all.sh
-                sh -v ./deploy_ekscluster_all_noprofile.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
-			    '''
-            }
-        }
         
-		stage('Deploy Eks Cluster') {
+		stage('Build Eks Cluster') {
             steps {		
                 sh '''
                 chmod +x ./deploy_ekscluster_all.sh
-                sh -v ./deploy_ekscluster_all_noprofile.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
+                sh -x ./deploy_ekscluster_all_noprofile.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
 				
 				aws eks --region $REGION update-kubeconfig --name EKS-Demo-Cluster --kubeconfig ~/.kube/config
                  /usr/local/bin/kubectl apply -f aws-iam-authenticator.yaml
@@ -71,12 +63,12 @@ pipeline {
 				sh  '''
      				/usr/local/bin/kubectl apply -f deployment.yaml
 					/usr/local/bin/kubectl apply -f service.yaml
-					/usr/local/bin/kubectl get deployments
 					/usr/local/bin/kubectl get pods
-					/usr/local/bin/kubectl describe deployment 
-					/usr/local/bin/kubectl get svc --all-namespaces
+					/usr/local/bin/kubectl describe deployment
+					/usr/local/bin/kubectl get deployments
+					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
 					/usr/local/bin/kubectl get svc/nginx -o=jsonpath="{.status.loadBalancer.ingress..hostname}"
-					/usr/local/bin/kubectl get svc --all-namespaces
+
 					'''
 			}
 		}

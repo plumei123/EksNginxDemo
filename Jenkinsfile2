@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+	parameters {
+		string(defaultValue: 'nginxdemos/hello', description: '', name: 'repoName')
+		string(defaultValue: 'EKS-Demo-vpc', description: '', name: 'vpcStackName')
+		string(defaultValue: 'EKS-Demo-Cluster', description: '', name: 'clusterStackName')
+		string(defaultValue: 'EKS-Demo-Nodegroup', description: '', name: 'nodegroupStackName')
+		
+    }
+    environment {
+		REGION="us-east-2";
+    }	
+    stages {
+        stage('CleanWorkSpace') {
+            steps {
+                sh 'rm -rf *'
+                checkout scm
+            }
+        }
+		stage('Delete Nginx from EKS') {
+		    steps {			
+			    sh '''
+				   export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text)
+                   sed -ri "/\\{REPOSITORY\\}/ s#\\{REPOSITORY\\}#$REPOSITORY#" deployment.yaml'''
+				sh  '''
+				    /usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
+					/usr/local/bin/kubectl delete -f service.yaml
+					/usr/local/bin/kubectl delete -f deployment.yaml
+					/usr/local/bin/kubectl get pods
+					/usr/local/bin/kubectl describe deployment
+					/usr/local/bin/kubectl get deployments
+					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
+					'''
+			}
+		}
+		
+		stage('Delete Eks Cluster') {
+            steps {		
+                sh '''
+				aws eks list-clusters --region=$REGION --output=json
+				aws cloudformation delete-stack --stack-name $nodegroupStackName 
+				aws cloudformation wait stack-delete-complete --stack-name $nodegroupStackName
+				aws cloudformation delete-stack --stack-name $clusterStackName
+				aws cloudformation wait stack-delete-complete --stack-name $clusterStackName
+                aws cloudformation delete-stack --stack-name $vpcStackName
+				aws cloudformation wait stack-delete-complete --stack-name $vpcStackName
+                aws eks list-clusters --region=$REGION --output=json
+			    '''
+            }
+        }   
+
+		
+
+	}
+}

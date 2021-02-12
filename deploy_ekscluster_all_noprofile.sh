@@ -88,7 +88,7 @@ while true; do
             ;;
         -r | --region)
             REGION="$2";
-	    REGION_PARAM="--region $REGION"
+	        REGION_PARAM="--region $REGION"
             shift 2
             ;;
         --vpc-stack)
@@ -127,23 +127,14 @@ echo "NodeGroup Stack Name : $NODEGRP_STACK"
 
 
 aws_create_stack_VPC
-echo $?
-
-aws_wait_create_stack $VPC_STACK
-echo $?
-  
+aws_wait_create_stack $VPC_STACK  
 
 aws_create_stack_EKS
-echo $?
-
 aws_wait_create_stack $EKS_STACK
-echo $?
 
 aws_create_stack_Nodegroup
-echo $?
-
 aws_wait_create_stack $NODEGRP_STACK
-echo $?
+
 
 set -x
 
