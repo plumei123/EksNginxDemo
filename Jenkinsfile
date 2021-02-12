@@ -45,7 +45,7 @@ pipeline {
             steps {		
                 sh '''
                 chmod +x ./deploy_ekscluster_all.sh
-                sh -v ./deploy_ekscluster_all_noprofile.sh -r REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
+                sh -v ./deploy_ekscluster_all_noprofile.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
 			    '''
             }
         }
@@ -54,21 +54,21 @@ pipeline {
             steps {		
                 sh '''
                 chmod +x ./deploy_ekscluster_all.sh
-                sh -v ./deploy_ekscluster_all_noprofile.sh -r REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
+                sh -v ./deploy_ekscluster_all_noprofile.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
 				
-				aws eks --region us-east-2 update-kubeconfig --name EKS-Demo-Cluster --kubeconfig ~/.kube/config
+				aws eks --region $REGION update-kubeconfig --name EKS-Demo-Cluster --kubeconfig ~/.kube/config
                  /usr/local/bin/kubectl apply -f aws-iam-authenticator.yaml
-                 aws eks list-clusters --region=us-east-2 --output=json
+                 aws eks list-clusters --region=$REGION --output=json
 			    '''
             }
         }
 		
 		stage('Deploy Nginx to EKS') {
 		    steps {			
-			    sh '''
-					export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $region --query "repositories[0].repositoryUri" --output text) 
-					sed -ri "/\{REPOSITORY\}/ s#\{REPOSITORY\}#$REPOSITORY#" deployment.yaml
-					/usr/local/bin/kubectl apply -f deployment.yaml
+			    sh 'export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text)'
+                sh 'sed -ri "/\{REPOSITORY\}/ s#\{REPOSITORY\}#$REPOSITORY#" deployment.yaml'
+				sh  '''
+     				/usr/local/bin/kubectl apply -f deployment.yaml
 					/usr/local/bin/kubectl apply -f service.yaml
 					/usr/local/bin/kubectl get deployments
 					/usr/local/bin/kubectl get pods
