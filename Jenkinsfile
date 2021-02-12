@@ -65,8 +65,9 @@ pipeline {
 		
 		stage('Deploy Nginx to EKS') {
 		    steps {			
-			    sh 'export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text)'
-                sh 'sed -ri "/\{REPOSITORY\}/ s#\{REPOSITORY\}#$REPOSITORY#" deployment.yaml'
+			    sh '''
+				   export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text)
+                   sed -ri "/\\{REPOSITORY\\}/ s#\\{REPOSITORY\\}#$REPOSITORY#" deployment.yaml'''
 				sh  '''
      				/usr/local/bin/kubectl apply -f deployment.yaml
 					/usr/local/bin/kubectl apply -f service.yaml
