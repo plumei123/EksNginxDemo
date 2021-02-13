@@ -50,6 +50,12 @@ Resources:
   myCluster:
     Type: 'AWS::EKS::Cluster'
     Properties:
+      EncryptionConfig:
+        - Provider:
+            KeyArn: >-
+              arn:aws:kms:us-east-2:592269360669:key/fe27a8d9-1c79-4d0d-af93-3424e1c71264
+          Resources:
+            - secrets
       Name: EKS-Demo-Cluster
       Version: '1.18'
       RoleArn: !GetAtt 
