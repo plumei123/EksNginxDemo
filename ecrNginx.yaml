@@ -11,7 +11,7 @@ Resources:
     Properties: 
         RepositoryName: !Ref RepoName
         ImageScanningConfiguration: 
-            scanOnPush: "false"
+            scanOnPush: "true"
         Tags:
           - Key: "Creator"
             Value: "YanmDemo"

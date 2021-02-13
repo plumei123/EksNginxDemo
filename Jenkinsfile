@@ -66,8 +66,8 @@ pipeline {
             steps {	
                 //if there is CRITICAL warning, stop deploying Nginx image to EKS	
                 sh '''
-                aws ecr start-image-scan --registry-id $AWSACCOUNT --region $REGION --repository-name $repoName --image-id imageTag=latest
-                aws ecr wait image-scan-complete --registry-id $AWSACCOUNT --region $REGION --repository-name $repoName --image-id imageTag=latest
+                #aws ecr start-image-scan --registry-id $AWSACCOUNT --region $REGION --repository-name $repoName --image-id imageTag=latest
+                #aws ecr wait image-scan-complete --registry-id $AWSACCOUNT --region $REGION --repository-name $repoName --image-id imageTag=latest
                 SCAN_FINDINGS=$(aws ecr describe-image-scan-findings --registry-id $AWSACCOUNT --region $REGION --repository-name $repoName --image-id imageTag=latest | jq '.imageScanFindings.findingSeverityCounts')
                 CRITICAL=$(echo $SCAN_FINDINGS | jq '.CRITICAL')
                 if [ $CRITICAL != null ] ; then
