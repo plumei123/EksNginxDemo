@@ -1,0 +1,1 @@
+AWS::EKS::Cluster EncryptionConfig != false << you must create EncryptionConfig
