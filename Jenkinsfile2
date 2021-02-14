@@ -38,12 +38,12 @@ pipeline {
             steps {		
                 sh '''
 				aws eks list-clusters --region=$REGION --output=json
-				aws cloudformation delete-stack --stack-name $nodegroupStackName 
-				aws cloudformation wait stack-delete-complete --stack-name $nodegroupStackName
-				aws cloudformation delete-stack --stack-name $clusterStackName
-				aws cloudformation wait stack-delete-complete --stack-name $clusterStackName
-                aws cloudformation delete-stack --stack-name $vpcStackName
-				aws cloudformation wait stack-delete-complete --stack-name $vpcStackName
+				aws cloudformation delete-stack --region=$REGION --stack-name $nodegroupStackName 
+				aws cloudformation wait stack-delete-complete --region=$REGION --stack-name $nodegroupStackName
+				aws cloudformation delete-stack --region=$REGION --stack-name $clusterStackName
+				aws cloudformation wait stack-delete-complete --region=$REGION --stack-name $clusterStackName
+                aws cloudformation delete-stack --region=$REGION --stack-name $vpcStackName
+				aws cloudformation wait stack-delete-complete --region=$REGION --stack-name $vpcStackName
                 aws eks list-clusters --region=$REGION --output=json
 			    '''
             }
