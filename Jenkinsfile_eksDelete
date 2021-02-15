@@ -32,8 +32,7 @@ pipeline {
 					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
 					'''
 			}
-		}
-		
+		}		
 		stage('Delete Eks Cluster') {
             steps {		
                 sh '''
@@ -47,9 +46,6 @@ pipeline {
                 aws eks list-clusters --region=$REGION --output=json
 			    '''
             }
-        }   
-
-		
-
+        }
 	}
 }
