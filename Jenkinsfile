@@ -98,11 +98,17 @@ pipeline {
 					/usr/local/bin/kubectl apply -f service.yaml
 					/usr/local/bin/kubectl describe deployment
 					/usr/local/bin/kubectl get deployments nginx-deployment | grep "nginx-deployment" > deloyrt.txt
-					nRt=$(awk '{print $4}' deloyrt.txt)
-					while(( $nRt == 0 ))
+					awk '{print $2}' deloyrt.txt > readyStatus.txt
+					nDesiredCount=$(cut -d "/" -f 2 readyStatus.txt)
+					nReadyCount=$(cut -d "/" -f 1 readyStatus.txt)
+					while (( $nReadyCount < $nDesiredCount ))
                     do
                         echo "Waiting 30 seconds for nginx deploying."
                         sleep 30
+                        /usr/local/bin/kubectl get deployments nginx-deployment | grep "nginx-deployment" > deloyrt.txt
+					   	awk '{print $2}' deloyrt.txt > readyStatus.txt
+        			    nDesiredCount=$(cut -d "/" -f 2 readyStatus.txt)
+        				nReadyCount=$(cut -d "/" -f 1 readyStatus.txt)
                     done
 					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
 					/usr/local/bin/kubectl get svc/nginx -o=jsonpath="{.status.loadBalancer.ingress..hostname}"
