@@ -96,9 +96,14 @@ pipeline {
 				sh  '''
      				/usr/local/bin/kubectl apply -f deployment.yaml
 					/usr/local/bin/kubectl apply -f service.yaml
-					/usr/local/bin/kubectl get pods
 					/usr/local/bin/kubectl describe deployment
-					/usr/local/bin/kubectl get deployments
+					/usr/local/bin/kubectl get deployments nginx-deployment | grep "nginx-deployment" > deloyrt.txt
+					nRt=$(awk '{print $4}' deloyrt.txt)
+					while(( $nRt == 0 ))
+                    do
+                        echo "Waiting 30 seconds for nginx deploying."
+                        sleep 30
+                    done
 					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
 					/usr/local/bin/kubectl get svc/nginx -o=jsonpath="{.status.loadBalancer.ingress..hostname}"
 					'''
