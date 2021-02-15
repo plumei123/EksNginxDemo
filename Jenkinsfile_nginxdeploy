@@ -18,7 +18,7 @@ pipeline {
             }
         }
 		 
-		stage('Scan Nginx image of ECR') {
+	stage('Scan Nginx image of ECR') {
             steps {	
                 //if there is CRITICAL warning, stop deploying Nginx image to EKS	
                 sh '''
@@ -35,25 +35,21 @@ pipeline {
             }
         }
 		
-		stage('Deploy Nginx to EKS') {
-		    steps {			
-			    sh '''
-				   export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text)
+	stage('Deploy Nginx to EKS') {
+	    steps {			
+		sh '''
+		   export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text)
                    sed -ri "/\\{REPOSITORY\\}/ s#\\{REPOSITORY\\}#$REPOSITORY#" deployment.yaml'''
-				sh  '''
-     				/usr/local/bin/kubectl apply -f deployment.yaml
-					/usr/local/bin/kubectl apply -f service.yaml
-					/usr/local/bin/kubectl get pods
-					/usr/local/bin/kubectl describe deployment
-					/usr/local/bin/kubectl get deployments
-					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
-					/usr/local/bin/kubectl get svc/nginx -o=jsonpath="{.status.loadBalancer.ingress..hostname}"
-
-					'''
-			}
-		}
-
-		
-
+		   sh  '''
+     		   /usr/local/bin/kubectl apply -f deployment.yaml
+		   /usr/local/bin/kubectl apply -f service.yaml
+		   /usr/local/bin/kubectl get pods
+		   /usr/local/bin/kubectl describe deployment
+		   /usr/local/bin/kubectl get deployments
+		   /usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
+		   /usr/local/bin/kubectl get svc/nginx -o=jsonpath="{.status.loadBalancer.ingress..hostname}"
+                    '''
+		   }
 	}
+    }
 }
