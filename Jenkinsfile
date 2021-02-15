@@ -2,6 +2,7 @@ pipeline {
     agent any
 	parameters {
 		string(defaultValue: 'nginxdemos/hello', description: '', name: 'repoName')
+        string(defaultValue: 'nginxecr', description: '', name: 'ecrStackName')
 		string(defaultValue: 'EKS-Demo-vpc', description: '', name: 'vpcStackName')
 		string(defaultValue: 'EKS-Demo-Cluster', description: '', name: 'clusterStackName')
 		string(defaultValue: 'EKS-Demo-Nodegroup', description: '', name: 'nodegroupStackName')
@@ -30,30 +31,38 @@ pipeline {
             	}
             }		
 		}
-        stage('Build ECR') {
+        stage('Create ECR') {
             steps {           
                 sh '''
-				aws cloudformation create-stack --template-body file://./ecrNginx.yaml --stack-name nginxecr --region $REGION --parameters ParameterKey=RepoName,ParameterValue=$repoName --capabilities CAPABILITY_NAMED_IAM
-				'''}
+				aws cloudformation create-stack --template-body file://./ecrNginx.yaml --stack-name $ecrStackName --region $REGION --parameters ParameterKey=RepoName,ParameterValue=$repoName --capabilities CAPABILITY_NAMED_IAM
+				aws cloudformation wait stack-create-complete --stack-name $ecrStackName --region $REGION
+                '''}
+            post {
+                failure {
+                    echo "Maybe the same eck stack existed. Please point out another stack name."
+                }
+            }
 		}
         stage('Push Nginx to ECR') {
-            steps {		
-                sh '''
-                echo $DockerhubPwd | docker login --username plumei --password-stdin
-                docker search "nginx"
-                docker pull $repoName
-				export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text) 
-                aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $AWSACCOUNT.dkr.ecr.$REGION.amazonaws.com
-                docker tag $repoName:latest $REPOSITORY:latest
-                docker push $REPOSITORY:latest
-			    '''
+            steps {
+                withCredentials([usernamePassword(credentialsId: '269847e6-bb12-4ca4-830a-0b9673bca61a', passwordVariable: 'DockerhubPwd', usernameVariable: 'DockerhubUser')]) {
+                    sh '''
+                    echo $DockerhubPwd | docker login --username $DockerhubUser --password-stdin
+                    docker search "nginx"
+                    docker pull $repoName
+                    export REPOSITORY=$(aws ecr describe-repositories --repository-name $repoName  --region $REGION --query "repositories[0].repositoryUri" --output text) 
+                    aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $AWSACCOUNT.dkr.ecr.$REGION.amazonaws.com
+                    docker tag $repoName:latest $REPOSITORY:latest
+                    docker push $REPOSITORY:latest
+			        '''
+                }
             }
         }        
 		stage('Build Eks Cluster') {
             steps {		
                 sh '''
-                chmod +x ./deploy_ekscluster_all.sh
-                sh -x ./deploy_ekscluster_all_noprofile.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
+                chmod +x ./deploy_ekscluster_all_default.sh
+                sh -x ./deploy_ekscluster_all_default.sh -r $REGION --vpc-stack $vpcStackName --eks-stack $clusterStackName --nodegroup-stack $nodegroupStackName 
 				
 				aws eks --region $REGION update-kubeconfig --name $clusterStackName --kubeconfig ~/.kube/config
                 /usr/local/bin/kubectl apply -f aws-iam-authenticator.yaml
@@ -62,7 +71,7 @@ pipeline {
             }
         }
 
-        stage('Scan Nginx image of ECR') {
+        stage('Check Nginx Image Scan Status of ECR') {
             steps {	
                 //if there is CRITICAL warning, stop deploying Nginx image to EKS	
                 sh '''
@@ -92,7 +101,6 @@ pipeline {
 					/usr/local/bin/kubectl get deployments
 					/usr/local/bin/kubectl get svc --all-namespaces | grep LoadBalancer | awk '{print $5}'
 					/usr/local/bin/kubectl get svc/nginx -o=jsonpath="{.status.loadBalancer.ingress..hostname}"
-
 					'''
 			}
 		}
